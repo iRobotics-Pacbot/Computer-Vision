@@ -1,18 +1,16 @@
 import numpy as np
 import cv2 as cv
-
-import os
-os.system("")
+from typing import Tuple
 
 # Variables used in the arena grid
-I = 1 # wall
-o = 0  # pellet
-e = 0  # empty space
-O = 0  # powerpoint
-n = 0  # untouchable
-P = 0  # pacbot
-v = 0  # visited
-original_matrix = np.rot90([
+I = 1  # wall
+o = 2  # pellet
+e = 3  # empty space
+O = 4  # powerpoint
+n = 5  # untouchable
+P = 6  # pacbot
+v = 7  # visited
+arena = np.rot90([
     [I, I, I, I, I, I, I, I, I, I, I, I, e, e, e, I,
      I, I, e, e, e, I, I, I, I, I, I, I, I, I, I],
     [I, o, o, o, o, I, I, O, o, o, o, I, e, e, e, I,
@@ -69,3 +67,24 @@ original_matrix = np.rot90([
      v, I, e, e, e, I, o, o, o, o, o, O, o, o, I],
     [I, I, I, I, I, I, I, I, I, I, I, I, e, e, e, I, I, I, e, e, e, I, I, I, I, I, I, I, I, I, I]], k=2)
 
+
+def wall_correction(pac_pos: Tuple[int, int]) -> Tuple[int, int]:
+    '''
+    Takes in an incorrect node coordinate in a tuple (x,y) and returns the closest valid node coordinate instead.
+    Valid nodes include: pellet, powerpoint, and visited (see constants above)
+    The incorrect node is most likely caused by the pacbot being located inside a wall node.
+    '''
+    # TODO: implement this function
+    pass
+
+def trace_missing_path(start_pos: Tuple[int, int], end_pos:Tuple[int, int]) -> list[Tuple[int, int]]:
+    '''
+    Takes in two not continuous node coordinates (it takes more than 1 action to get from node 1 to node 2) and returns the most likely path the robot has taken to reach the end node from the start node. 
+    This is required in cases where pacbot moves almost diagonally at corners and confuses the system, making it look like pacbot suddenly moved two nodes in one move. 
+    Returned path is a list of node traversed during the movement.
+    '''
+    # TODO: implement this function
+    pass
+
+if __name__ == "__main__":
+    print(arena)
