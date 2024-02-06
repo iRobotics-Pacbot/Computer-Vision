@@ -47,22 +47,35 @@ class TestTracePath(unittest.TestCase):
         '''
         test nodes that form a straight path are correctly dealt with
         '''
-        self.assertEqual(trace_missing_path(
-            (1, 1), (3, 1)), [(1, 1), (2, 1), (3, 1)])
+        correct_path_1 = [(1, 1), (2, 1), (3, 1)]
+        test_path_1 = trace_missing_path((1, 1), (3, 1))
+        print(test_path_1)
+        self.assertEqual(len(test_path_1),len(correct_path_1))
+        for i in range(len(correct_path_1)):
+            self.assertSequenceEqual(test_path_1[i],correct_path_1[i])
 
     def test_corner_path(self):
         '''
         test nodes that forms a path with turns are correctly dealt with
         '''
-        self.assertEqual(trace_missing_path(
-            (1, 2), (2, 1)), [(1, 2), (1, 1), (2, 1)])
+        correct_path_1 = [(1, 2), (1, 1), (2, 1)]
+        test_path_1 = trace_missing_path((1, 2), (2, 1))
+        print(test_path_1)
+        self.assertEqual(len(test_path_1),len(correct_path_1))
+        for i in range(len(correct_path_1)):
+            self.assertSequenceEqual(test_path_1[i],correct_path_1[i])
 
     def test_long_path(self):
         '''
         test a longer sequence of path
         '''
-        self.assertEqual(trace_missing_path((16, 1), (23, 5)), [(16, 1), (17, 1), (18, 1), (
-            19, 1), (20, 1), (21, 1), (21, 2), (21, 3), (21, 4), (21, 5), (22, 5), (23, 5)])
+        correct_path_1 = [(16, 1), (17, 1), (18, 1), (
+            19, 1), (20, 1), (21, 1), (21, 2), (21, 3), (21, 4), (21, 5), (22, 5), (23, 5)]
+        test_path_1 = trace_missing_path((16, 1), (23, 5))
+        print(test_path_1)
+        self.assertEqual(len(test_path_1),len(correct_path_1))
+        for i in range(len(correct_path_1)):
+            self.assertSequenceEqual(test_path_1[i],correct_path_1[i])
 
 
 if __name__ == '__main__':
