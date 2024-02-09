@@ -83,7 +83,47 @@ def wall_correction(pac_pos: Tuple[int, int]) -> Tuple[int, int]:
     The incorrect node is most likely caused by the pacbot being located inside a wall node.
     '''
     # TODO: implement this function
-    pass
+    # TODO: implement this function
+    # Check if the current position is already valid
+    if arena[pac_pos[0], pac_pos[1]] in [o, O, v]:
+        return pac_pos
+    
+    #check 8 surrounding positions
+    if 0 <= pac_pos[0] < arena.shape[0] and 0 <= pac_pos[1] + 1< arena.shape[1] and arena[pac_pos[0], pac_pos[1] + 1] in [o, O, v]:
+      search_pos = (pac_pos[0], pac_pos[1] + 1)
+      return search_pos
+
+    elif 0 <= pac_pos[0] - 1 < arena.shape[0] and 0 <= pac_pos[1]< arena.shape[1] and arena[pac_pos[0] - 1, pac_pos[1]] in [o, O, v]:
+      search_pos = (pac_pos[0] - 1 , pac_pos[1])
+      return search_pos
+    
+    elif 0 <= pac_pos[0] + 1 < arena.shape[0] and 0 <= pac_pos[1]< arena.shape[1] and arena[pac_pos[0] + 1, pac_pos[1]] in [o, O, v]:
+      search_pos = (pac_pos[0] +1, pac_pos[1])
+      return search_pos
+
+    elif 0 <= pac_pos[0] < arena.shape[0] and 0 <= pac_pos[1] - 1< arena.shape[1] and arena[pac_pos[0], pac_pos[1] - 1] in [o, O, v]:
+      search_pos = (pac_pos[0], pac_pos[1] - 1)
+      return search_pos
+
+    elif 0 <= pac_pos[0] -1 < arena.shape[0] and 0 <= pac_pos[1] + 1< arena.shape[1] and arena[pac_pos[0] - 1, pac_pos[1] + 1] in [o, O, v]:
+      search_pos = (pac_pos[0] -1, pac_pos[1] + 1)
+      return search_pos
+    
+    elif 0 <= pac_pos[0] + 1 < arena.shape[0] and 0 <= pac_pos[1] + 1 < arena.shape[1] and arena[pac_pos[0] + 1, pac_pos[1] + 1] in [o, O, v] :
+      search_pos = (pac_pos[0] + 1, pac_pos[1] + 1)
+      return search_pos
+    
+    elif 0 <= pac_pos[0] - 1 < arena.shape[0] and 0 <= pac_pos[1] - 1< arena.shape[1] and arena[pac_pos[0] -1 , pac_pos[1] - 1] in [o, O, v]:
+      search_pos = (pac_pos[0] -1, pac_pos[1] - 1)
+      return search_pos
+    
+    
+    elif 0 <= pac_pos[0] + 1 < arena.shape[0] and 0 <= pac_pos[1] - 1< arena.shape[1] and arena[pac_pos[0] + 1, pac_pos[1] - 1] in [o, O, v]:
+      search_pos = (pac_pos[0]  + 1, pac_pos[1] - 1)
+      return search_pos
+    
+
+    return (-1,-1)
 
 
 def trace_missing_path(start_pos: Tuple[int, int], end_pos: Tuple[int, int]) -> list[Tuple[int, int]]:
