@@ -3,6 +3,8 @@ import cv2 as cv
 import math
 import pickle
 
+from cv_arena import wall_correction
+
 # Exposure adjustment
 def gamma_trans(img, gamma):
     gamma_table=[np.power(x/255.0,gamma)*255.0 for x in range(256)]
@@ -49,8 +51,8 @@ cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M','J','P','G'))
 
 print("setup successful")
 
-num_rows = 28
-num_cols = 31
+num_rows = 31
+num_cols = 28
 row_to_pxl = cam_height/num_rows
 col_to_pxl = cam_width/num_cols
 

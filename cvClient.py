@@ -22,6 +22,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 from terminalColors import *
 
 from cv_locater import capture_loc, clean
+from cv_arena import wall_correction
 
 # Get the connect URL from the config.json file
 def getConnectURL() -> str:
@@ -159,13 +160,16 @@ class PacbotClient:
 
 			# Write back to the server, as a test (move right)
 			pac_pos = capture_loc()
-			cv_output = [b'x',(pac_pos[0]).to_bytes(),(pac_pos[1] - 1).to_bytes()]
-			self.state.writeServerBuf.append(
-                ServerMessage(b''.join(cv_output),4)
-            )
+			print("Original: ",pac_pos)
+			pac_pos = wall_correction(pac_pos)
+			print("Wall corrected: ",pac_pos)
 
-			# Print that a decision has been made
-			print('updated')
+			if (pac_pos[0] > 0 and pac_pos[1] > 0):
+				cv_output = [b'x',(pac_pos[1]).to_bytes(),(pac_pos[0]).to_bytes()]
+				self.state.writeServerBuf.append(
+                ServerMessage(b''.join(cv_output),1)
+				)
+			
 
 			# Free up the event loop
 			await asyncio.sleep(0)

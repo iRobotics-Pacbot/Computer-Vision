@@ -85,6 +85,19 @@ def wall_correction(pac_pos: Tuple[int, int]) -> Tuple[int, int]:
     # TODO: implement this function
     # TODO: implement this function
     # Check if the current position is already valid
+
+    offsets = [(x, y) for x in range(-1, 2) for y in range(-1, 2)]
+    best_dist = 100
+    best_pos = (-1, -1)
+    for offset in offsets:
+      new_pos = (int(pac_pos[0] + offset[0]), int(pac_pos[1] + offset[1]))
+      dist = abs(pac_pos[0] - (new_pos[0] + 0.5)) + abs(pac_pos[1] - (new_pos[1] + 0.5))
+      if dist < best_dist and 0 <= new_pos[0] < len(arena) and 0 <= new_pos[1] < len(arena[0]) and arena[new_pos[0], new_pos[1]] in [o, O, v]:
+        best_dist = dist
+        best_pos = new_pos
+
+    return best_pos
+
     if arena[pac_pos[0], pac_pos[1]] in [o, O, v]:
         return pac_pos
     
