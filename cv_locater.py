@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 import math
+import pickle
 
 # Exposure adjustment
 def gamma_trans(img, gamma):
@@ -25,14 +26,27 @@ def point_perspective_trans(matrix, point):
     py = (matrix[1][0]*point[0] + matrix[1][1]*point[1] + matrix[1][2]) / ((matrix[2][0]*point[0] + matrix[2][1]*point[1] + matrix[2][2]))
     return (int(px), int(py))
     
-
+print("setting up")
 # Open camera at default camera port
-cap = cv.VideoCapture(0)
+cam_width, cam_height = 1280, 800
+
+cap = cv.VideoCapture(0, cv.CAP_DSHOW)
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
-cam_width  = cap.get(3)  # float `width`
-cam_height = cap.get(4)  # float `height`
+
+mtx, dist = pickle.load(open('calibration.pkl', 'rb'))
+
+newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (cam_width, cam_height), 1, (cam_width, cam_height))
+
+cap.set(3, cam_width)
+cap.set(4, cam_height)
+cap.set(cv.CAP_PROP_AUTOFOCUS, 0)
+cap.set(cv.CAP_PROP_SETTINGS, 1)
+cap.set(cv.CAP_PROP_FPS, 120)
+cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M','J','P','G'))
+
+print("setup successful")
 
 num_rows = 5
 num_cols = 8
@@ -46,9 +60,14 @@ def capture_loc() -> list[int,int]:
     if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
         raise RuntimeError()
+
+    dst = cv.undistort(frame, mtx, dist, None, newcameramtx)
+    x, y, w, h = roi
+    dst = dst[y:y+h, x:x+w]
+
     # Our operations on the frame come here
     # Grayscale transformation
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    gray = cv.cvtColor(dst, cv.COLOR_BGR2GRAY)
 
     # Reduce exposure
     exposed = gamma_trans(gray,8)
@@ -127,12 +146,16 @@ if __name__ == "__main__":
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
+
+        dst = cv.undistort(frame, mtx, dist, None, newcameramtx)
+        x, y, w, h = roi
+        dst = dst[y:y+h, x:x+w]
         # Our operations on the frame come here
         # Grayscale transformation
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        gray = cv.cvtColor(dst, cv.COLOR_BGR2GRAY)
 
         # Reduce exposure
-        exposed = gamma_trans(gray,8)
+        exposed = gamma_trans(gray,1)
 
         # Do Gaussian Blur to reduce noise
         blur = cv.GaussianBlur(exposed,(5,5),0)

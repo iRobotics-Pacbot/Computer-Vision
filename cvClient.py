@@ -158,7 +158,7 @@ class PacbotClient:
 				continue
 
 			# Write back to the server, as a test (move right)
-			pac_pos = capture_loc
+			pac_pos = capture_loc()
 			cv_output = [b'x',(pac_pos[0]).to_bytes(),(pac_pos[1] - 1).to_bytes()]
 			self.state.writeServerBuf.append(
                 ServerMessage(b''.join(cv_output),4)
