@@ -4,6 +4,8 @@ import math
 import pickle
 import copy
 
+import time
+
 from cv_arena import wall_correction
 
 # Exposure adjustment
@@ -45,6 +47,8 @@ newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (cam_width, cam_heig
 
 cap.set(3, cam_width)
 cap.set(4, cam_height)
+cap.set(cv.CAP_PROP_AUTO_EXPOSURE,0)
+cap.set(cv.CAP_PROP_EXPOSURE,-11)
 cap.set(cv.CAP_PROP_AUTOFOCUS, 0)
 cap.set(cv.CAP_PROP_SETTINGS, 1)
 cap.set(cv.CAP_PROP_FPS, 120)
@@ -68,7 +72,7 @@ param.maxThreshold = 255
 bot_detector = cv.SimpleBlobDetector.create(param)
 
 ref_param = cv.SimpleBlobDetector.Params()
-ref_param.filterByCircularity = True
+ref_param.filterByCircularity = False
 ref_param.filterByArea = True
 ref_param.minThreshold = 91
 ref_param.maxThreshold = 255
@@ -79,8 +83,9 @@ ref_param.minArea = 30
 
 ref_detector = cv.SimpleBlobDetector.create(ref_param)
 
-def capture_loc() -> list[int,int]:
+while True:
     ret, frame = cap.read()
+    curr_time = time.time()
     # if frame is read correctly ret is True
     if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
@@ -90,51 +95,46 @@ def capture_loc() -> list[int,int]:
     x, y, w, h = roi
     frame = frame[y:y+h, x:x+w]
     # Our operations on the frame come here
-    # Grayscale transformation (maybe not needed)
-    # gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    # Grayscale transformation
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
     # Reduce exposure
-    exposed = gamma_trans(frame,10)
-    cv.imshow('frame',exposed)
+    exposed = gamma_trans(gray,10)
+
+    # Do Gaussian Blur to reduce noise
+    blur = cv.GaussianBlur(exposed,(5,5),0)
+
+    # Do a binary threshhold to filter out not reflective / not retroreflective objects
+    ret2, thresh_img = cv.threshold(blur,91,255,cv.THRESH_BINARY)
 
     # Find all existing contours in the frame. Only retrieving external contours as internal ones won't be very useful in our situation where the contours we want would all be fully filled in
-    bot = bot_detector.detect(exposed)
-    refs = ref_detector.detect(exposed)
     
-    if len(refs) == 4:
-        # not correct number of rows and columns, need to be adjusted later
-        pac_pos = bot[0].pt
+    contours =  cv.findContours(thresh_img,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)[-2]
 
-        # if len(bot) != 0:
-        #     pac_pos, r = cv.minEnclosingCircle(pacbot[0])
-        
-        # sort to correspond with the transformation matrix
-        refs.sort()
-        corner_pts_32 = np.float32(refs)
-        target_pts = np.float32([[0+col_to_pxl/2,0+row_to_pxl/2],[0+col_to_pxl/2,cam_height-row_to_pxl/2],[cam_width-col_to_pxl/2,0+row_to_pxl/2],[cam_width-col_to_pxl/2,cam_height-row_to_pxl/2]])
-        # use a perspective transformation matrix to make the detected arena fit the screen, may not be needed since the camera position will be fixed. 
-        matrix = cv.getPerspectiveTransform(corner_pts_32,target_pts)
-        result = cv.warpPerspective(frame,matrix,(cam_width,cam_height))
+    # Find all existing contours in the frame. Only retrieving external contours as internal ones won't be very useful in our situation where the contours we want would all be fully filled in
+    #bot = bot_detector.detect(exposed)
+    #refs = ref_detector.detect(exposed)
 
-        # transform the pacbot position into a new position that corresponds with the frame after the perspective transformation
-        pac_pos_after = point_perspective_trans(matrix, pac_pos)
+    for c in contours:
+        area = cv.contourArea(c)
+        peri = cv.arcLength(c, True)
+        rect = cv.minAreaRect(c)
+        print("thing detected")
 
-        # find approximate node coordinates
-        pac_x = math.floor(pac_pos_after[0]/col_to_pxl)
-        pac_y = math.floor(pac_pos_after[1]/row_to_pxl)
-        print(pac_x,pac_y)
-        print(refs)
-        return [pac_x,pac_y]
+    print(time.time() - curr_time)
 
-def clean():
-    cap.release()
-    cv.destroyAllWindows()
+    #cv.drawContours(exposed,contours,-1,(0,255,0), 3)
 
-if __name__ == "__main__":
-    while(cap.isOpened()):
-        print(capture_loc())
-        if cv.waitKey(1) == ord('q'):
-            break
-    # When everything done, release the capture
-    cap.release()
-    cv.destroyAllWindows()
+    cv.imshow('frame',exposed)
+
+    #print(refs)
+
+    # if(len(refs) > 0):
+    #     print(refs[0].pt)
+
+    if cv.waitKey(1) == ord('q'):
+        cv.imwrite("sample3.png",exposed)
+        break
+
+cap.release()
+cv.destroyAllWindows()
