@@ -9,19 +9,18 @@
 
 int main() {
     std::filesystem::path path = "testImages";
-    cv::Mat image = cv::imread(path/"sample2.png");
-
-    cv::Mat copy = image.clone();
+    cv::Mat image = cv::imread(path/"sample.png");
     IPipeline* pipeline = new IterativeSearch();
 
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    std::pair<int, int> pos = pipeline->process(copy);
-    printf("Time (ms): %ld\n", std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start).count());
-
-    cv::circle(image, {pos.second, pos.first}, 10, {255, 0 ,0});
+    int samples = 1e4;
+    long totalTime = 0;
     
-    cv::namedWindow("Display");
-    cv::imshow("Display", image);
-    cv::waitKey(0);
+    for (int i = 0; i < samples; i++) {
+        cv::Mat copy = image.clone();
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        std::pair<int, int> pos = pipeline->process(copy);
+        totalTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start).count();
+    }
+    printf("Time (micros): %ld\n", totalTime/samples);
     delete pipeline;
 }
