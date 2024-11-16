@@ -2,25 +2,29 @@
 #include <chrono>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv4/opencv2/core.hpp>
-#include <opencv4/opencv2/imgcodecs.hpp>
-#include <opencv4/opencv2/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
 #include <filesystem>
+#include <opencv2/videoio.hpp>
 
 int main() {
-    std::filesystem::path path = "testImages";
-    cv::Mat image = cv::imread(path/"sample.png");
+    std::filesystem::path path = "testImages/sample.png";
+    cv::VideoCapture capture;
+    capture.open(0, cv::CAP_ANY);
+    cv::Mat image;
     IPipeline* pipeline = new IterativeSearch();
 
-    int samples = 1e4;
-    long totalTime = 0;
+    cv::namedWindow("Live");
     
-    for (int i = 0; i < samples; i++) {
+    while (true) {
+        capture.read(image);
         cv::Mat copy = image.clone();
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
         std::pair<int, int> pos = pipeline->process(copy);
-        totalTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start).count();
+        cv::circle(image, {pos.first, pos.second}, 10, {0, 255, 0});
+        cv::imshow("Live", image);
     }
-    printf("Time (micros): %ld\n", totalTime/samples);
+
+
     delete pipeline;
 }

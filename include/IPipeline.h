@@ -1,5 +1,5 @@
 #include <opencv2/core/mat.hpp>
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 struct IPipeline {
     virtual ~IPipeline() = default;

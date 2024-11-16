@@ -3,12 +3,12 @@
 #include <atomic>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
-#include <opencv4/opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 std::pair<int, int> IterativeSearch::process(cv::Mat& mat) {
 
-    double scale = 0.5;
+    double scale = 0.25;
     cv::resize(mat, mat, {(int) (mat.cols * scale), (int) (mat.rows * scale)});
     cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
     cv::GaussianBlur(mat, mat, {7, 7}, 0);
