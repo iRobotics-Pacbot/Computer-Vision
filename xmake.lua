@@ -1,5 +1,4 @@
 add_requires("opencv")
-
 target("cv")
     set_kind("binary")
     add_files("src/*.cpp")
