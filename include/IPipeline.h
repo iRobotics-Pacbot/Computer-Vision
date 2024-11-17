@@ -1,15 +1,17 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core.hpp>
 
-/*
-This interface represents a processing pipeline
-*/
+/**
+ * @brief An image processing pipeline that finds the location of the marker
+ * 
+ */
 struct IPipeline {
     virtual ~IPipeline() = default;
-    /*
-    Calculates the coordinates of the marker based on the image
-    @param mat The image to be processed
-    @return The location of the marker on the image
-    */
+    /**
+     * @brief Finds the location of the marker given a frame
+     * 
+     * @param mat The frame to process
+     * @return The location of the marker
+     */
     virtual std::pair<int, int> process(cv::Mat& mat) = 0;
 };
