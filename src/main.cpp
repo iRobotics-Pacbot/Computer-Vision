@@ -9,35 +9,44 @@
 #include <opencv2/videoio.hpp>
 
 int main() {
-  // Gets the user's configuration
-  int cam, exposure;
-  std::cout << "Camera Index: ";
-  std::cin >> cam;
-  std::cout << "Exposure: ";
-  std::cin >> exposure;
+    // Gets the user's configuration
+    int cam, exposure;
+    std::cout << "Camera Index: ";
+    std::cin >> cam;
+    std::cout << "Exposure: ";
+    std::cin >> exposure;
 
-  // Starts up the camera
-  cv::VideoCapture capture;
-  capture.open(cam, cv::CAP_ANY);
-  capture.set(cv::CAP_PROP_EXPOSURE, exposure);
+    // Starts up the camera
+    cv::VideoCapture capture;
+    capture.open(cam, cv::CAP_ANY);
 
-  // Creates the buffer
-  cv::Mat image;
+    // Sets the camera exposure
+    capture.set(cv::CAP_PROP_EXPOSURE, exposure);
 
-  // Creates the pipeline
-  std::unique_ptr<IPipeline> pipeline = std::make_unique<IterativeSearch>();
+    // Creates the buffer
+    cv::Mat image;
 
-  cv::namedWindow("Live");
+    // Creates the pipeline
+    std::unique_ptr<IPipeline> pipeline = std::make_unique<IterativeSearch>();
 
-  while (true) {
-    capture.read(image);
+    // Creates the window
+    cv::namedWindow("Live");
 
-    cv::Mat copy = image.clone();
-    std::pair<int, int> pos = pipeline->process(copy);
-    cv::circle(image, {pos.second, pos.first}, 10, {0, 255, 0});
-    cv::imshow("Live", image);
+    // Runs while the 
+    while (cv::waitKey(1) < 0) {
+        // Grab the frame
+        capture.read(image);
 
-    if (cv::waitKey(1) >= 0)
-      break;
-  }
+        // Copy the frame so it can be used for display later
+        cv::Mat copy = image.clone();
+
+        // Get the coordinates of the marker
+        std::pair<int, int> pos = pipeline->process(copy);
+
+        // Draw a circle around the marker
+        cv::circle(image, {pos.second, pos.first}, 10, {0, 255, 0});
+
+        //Display image to the window
+        cv::imshow("Live", image);
+    }
 }
