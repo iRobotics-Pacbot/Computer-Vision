@@ -11,12 +11,12 @@ std::pair<int, int> IterativeSearch::process(cv::Mat& mat) {
     double scale = 0.25;
     cv::resize(mat, mat, {(int) (mat.cols * scale), (int) (mat.rows * scale)});
     cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
-    cv::GaussianBlur(mat, mat, {7, 7}, 0);
+    //cv::GaussianBlur(mat, mat, {7, 7}, 0);
 
-    std::atomic_int leftMost = mat.cols;
-    std::atomic_int rightMost = 0;
-    std::atomic_int topMost = mat.rows;
-    std::atomic_int bottomMost = 0;
+    std::atomic_int leftMost{mat.cols};
+    std::atomic_int rightMost{0};
+    std::atomic_int topMost{mat.rows};
+    std::atomic_int bottomMost{0};
 
     mat.forEach<uchar>([&](uchar &pixel, const int * position) {
         if (pixel > 255/2) {
@@ -39,5 +39,5 @@ std::pair<int, int> IterativeSearch::process(cv::Mat& mat) {
     });
 
         
-    return {(topMost + bottomMost)/2/scale, (leftMost + rightMost)/2/scale};
+    return {(topMost + bottomMost)/2.0/scale, (leftMost + rightMost)/2.0/scale};
 }
