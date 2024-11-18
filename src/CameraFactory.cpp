@@ -6,7 +6,7 @@
 std::shared_ptr<cv::VideoCapture> CameraFactory::create(int index, int exposure) {
     std::shared_ptr<cv::VideoCapture> capture = std::make_shared<cv::VideoCapture>();
     capture->set(cv::CAP_PROP_EXPOSURE, exposure);
-    capture->open(0);
+    capture->open(index);
     if (not capture->isOpened()) {
         spdlog::error("Failed to Open Camera {}", index);
     }

@@ -13,34 +13,29 @@
 int main(int argc, char** argv) {
     spdlog::set_level(spdlog::level::debug);
 
-    spdlog::info("Starting Program...");
+    spdlog::info("Starting Program");
 
-    spdlog::info("Loading Configurations...");
+    spdlog::info("Loading Configurations");
     Config config;
     std::filesystem::path path = std::filesystem::path(argv[0]).parent_path();
     spdlog::debug("Path {}", path.string());
     config.loadFromFile((path / "default.yaml").string());
     config.loadFromFile((path / "user.yaml").string());
-    spdlog::info("Done");
 
-    spdlog::info("Creating Pipeline...");
+    spdlog::info("Creating Pipeline");
     std::shared_ptr<IPipeline> pipeline = PipelineFactory::create(config.pipeline);
-    spdlog::info("Done");
 
-    spdlog::info("Creating Process...");
+    spdlog::info("Creating Process");
     std::shared_ptr<IProcess> process = ProcessFactory::create(config.process);
-    spdlog::info("Done");
 
-    spdlog::info("Creating Camera...");
+    spdlog::info("Creating Camera");
     std::shared_ptr<cv::VideoCapture> camera = CameraFactory::create(config.cameraIndex, config.exposure);
-    spdlog::info("Done");
 
     spdlog::info("Running");
     process->run(camera, pipeline);
 
-    spdlog::info("Releasing Camera...");
+    spdlog::info("Releasing Camera");
     camera->release();
-    spdlog::info("Done");
 
     spdlog::info("Program Terminated");
 }
