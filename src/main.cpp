@@ -18,9 +18,10 @@ int main(int argc, char** argv) {
     spdlog::info("Loading Configurations");
     Config config;
     std::filesystem::path path = std::filesystem::path(argv[0]).parent_path();
+    std::filesystem::current_path(path);
     spdlog::debug("Path {}", path.string());
-    config.loadFromFile((path / "default.yaml").string());
-    config.loadFromFile((path / "user.yaml").string());
+    config.loadFromFile("default.yaml");
+    config.loadFromFile("user.yaml");
 
     spdlog::info("Creating Pipeline");
     std::shared_ptr<IPipeline> pipeline = PipelineFactory::create(config.pipeline);
