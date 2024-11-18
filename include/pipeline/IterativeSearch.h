@@ -1,4 +1,5 @@
 #pragma once
+
 #include "IPipeline.h"
 
 /**

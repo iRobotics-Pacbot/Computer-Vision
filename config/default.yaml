@@ -1,0 +1,4 @@
+process: "user"
+pipeline: "iterative"
+camera: 0
+exposure: 0

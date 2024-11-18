@@ -1,52 +1,46 @@
-#include "IterativeSearch.h"
-#include <iostream>
+#include "CameraFactory.h"
+#include "Config.h"
+#include "IPipeline.h"
+#include "IProcess.h"
+#include "PipelineFactory.h"
+#include "ProcessFactory.h"
+#include "opencv2/videoio.hpp"
+#include "spdlog/common.h"
+#include <spdlog/spdlog.h>
 #include <memory>
-#include <opencv2/core.hpp>
-#include <opencv2/core/mat.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/videoio.hpp>
+#include <filesystem>
 
-int main() {
-    // Gets the user's configuration
-    int cam, exposure;
-    std::cout << "Camera Index: ";
-    std::cin >> cam;
-    std::cout << "Exposure: ";
-    std::cin >> exposure;
+int main(int argc, char** argv) {
+    spdlog::set_level(spdlog::level::debug);
 
-    // Starts up the camera
-    cv::VideoCapture capture;
-    capture.open(cam, cv::CAP_ANY);
+    spdlog::info("Starting Program...");
 
-    // Sets the camera exposure
-    capture.set(cv::CAP_PROP_EXPOSURE, exposure);
+    spdlog::info("Loading Configurations...");
+    Config config;
+    std::filesystem::path path = std::filesystem::path(argv[0]).parent_path();
+    spdlog::debug("Path {}", path.string());
+    config.loadFromFile((path / "default.yaml").string());
+    config.loadFromFile((path / "user.yaml").string());
+    spdlog::info("Done");
 
-    // Creates the buffer
-    cv::Mat image;
+    spdlog::info("Creating Pipeline...");
+    std::shared_ptr<IPipeline> pipeline = PipelineFactory::create(config.pipeline);
+    spdlog::info("Done");
 
-    // Creates the pipeline
-    std::unique_ptr<IPipeline> pipeline = std::make_unique<IterativeSearch>();
+    spdlog::info("Creating Process...");
+    std::shared_ptr<IProcess> process = ProcessFactory::create(config.process);
+    spdlog::info("Done");
 
-    // Creates the window
-    cv::namedWindow("Live");
+    spdlog::info("Creating Camera...");
+    std::shared_ptr<cv::VideoCapture> camera = CameraFactory::create(config.cameraIndex, config.exposure);
+    spdlog::info("Done");
 
-    // Runs while the 
-    while (cv::waitKey(1) < 0) {
-        // Grab the frame
-        capture.read(image);
+    spdlog::info("Running");
+    process->run(camera, pipeline);
 
-        // Copy the frame so it can be used for display later
-        cv::Mat copy = image.clone();
+    spdlog::info("Releasing Camera...");
+    camera->release();
+    spdlog::info("Done");
 
-        // Get the coordinates of the marker
-        std::pair<int, int> pos = pipeline->process(copy);
-
-        // Draw a circle around the marker
-        cv::circle(image, {pos.second, pos.first}, 10, {0, 255, 0});
-
-        //Display image to the window
-        cv::imshow("Live", image);
-    }
+    spdlog::info("Program Terminated");
 }
