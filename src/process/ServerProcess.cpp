@@ -18,12 +18,15 @@ ServerProcess::ServerProcess() {
     nlohmann::json data = nlohmann::json::parse(fileStream);
     fileStream.close();
 
-    std::string address = std::format("ws://{}:{}", data["ServerIP"].get<std::string>(), data["WebSocketPort"].get<std::string>());
+    std::string host = data["ServerIP"].get<std::string>();
+    std::string port = std::to_string(data["WebSocketPort"].get<int>());
+    
+    spdlog::info("Connecting to ws://{}:{}", host, port);
 
     context = std::make_unique<asio::io_context>();
     asio::ip::tcp::resolver resolver(*context);
     socket = std::make_unique<asio::ip::tcp::socket>(*context);
-    socket->async_connect(resolver.resolve(address, "server")->endpoint());
+    socket->connect(resolver.resolve(host, port)->endpoint());
 
     webThread = std::make_unique<std::thread>([&]() {
         while (socket->is_open()) {
@@ -46,4 +49,6 @@ void ServerProcess::run(const std::shared_ptr<cv::VideoCapture>& camera, const s
         socket->async_send(data);
     }
     webThread->join();
+
+    spdlog::info("Client Disconnected");
 }

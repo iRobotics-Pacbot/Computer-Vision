@@ -1,4 +1,4 @@
-process: "user"
-pipeline: "iterative"
-camera: 0
+process: user
+pipeline: iterative
+cameraIndex: 0
 exposure: 0
