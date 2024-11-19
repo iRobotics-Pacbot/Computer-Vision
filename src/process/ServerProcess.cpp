@@ -61,9 +61,6 @@ void ServerProcess::run(
 
     // Flag to check if the calibrator has been calibrated
     bool calibrated = false;
-
-    // The subregion of interest
-    cv::Rect region;
     
     // Buffer for sending to the server
     char data[sizeof(char) + 2 * sizeof(int)];
@@ -78,18 +75,16 @@ void ServerProcess::run(
 
         // Check if calibrated
         if (not calibrated) {
-            region = calibrator->calibrate(frame);
+            calibrator->calibrate(frame);
             calibrated = true;
         }
 
-        // Create the subregion
-        cv::Mat subregion = frame(region);
+        // Transform the frame
+        calibrator->convert(frame);
+
 
         // Get the position using the pipeline
-        std::pair<int, int> pos = pipeline->process(subregion);
-
-        // Convert to grid space coordinates
-        pos = calibrator->convert(pos);
+        std::pair<int, int> pos = pipeline->process(frame);
 
         // Copy the position data into the buffer
         std::memcpy(data + sizeof(char), (char*) &pos.first, sizeof(int));

@@ -15,12 +15,11 @@ struct ICalibrator {
      * @param input The output of the camera
      * @return The subregion of interest
      */
-    virtual cv::Rect calibrate(cv::Mat& input);
+    virtual void calibrate(cv::Mat& input);
     /**
-     * @brief Converts image space coordinates to maze grid space coordinates
+     * @brief Fixes the perspective warping and crops the image
      * 
-     * @param position The image space coordinate
-     * @return The grid space coordinate
+     * @param mat The input image
      */
-    virtual std::pair<int, int> convert(const std::pair<int, int>& position) const;
+    virtual void convert(cv::Mat& mat) const;
 };

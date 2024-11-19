@@ -2,6 +2,7 @@
 
 #include <string>
 
+// TODO: Marked for deletion
 /**
  * @brief Stores the configration for the program
  * 
