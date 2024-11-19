@@ -15,11 +15,11 @@ struct ICalibrator {
      * @param input The output of the camera
      * @return The subregion of interest
      */
-    virtual void calibrate(cv::Mat& input);
+    virtual void calibrate(cv::Mat &input) = 0;
     /**
      * @brief Fixes the perspective warping and crops the image
      * 
      * @param mat The input image
      */
-    virtual void convert(cv::Mat& mat) const;
+    virtual void convert(cv::Mat& mat) const = 0;
 };
