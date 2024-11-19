@@ -9,6 +9,7 @@
 struct Config {
     std::string process;
     std::string pipeline;
+    std::string calibrator;
     int cameraIndex;
     int exposure;
 

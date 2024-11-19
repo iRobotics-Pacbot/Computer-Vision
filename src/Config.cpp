@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 
 void Config::loadFromFile(const std::string& path) {
+    // Load the yaml data and override configurations
     YAML::Node data = YAML::LoadFile(path);
     if (data["process"]) {
         spdlog::debug("Process {}", process = data["process"].as<std::string>());
@@ -12,6 +13,10 @@ void Config::loadFromFile(const std::string& path) {
 
     if (data["pipeline"]) {
         spdlog::debug("Pipeline {}", pipeline = data["pipeline"].as<std::string>());
+    }
+
+    if (data["calibrator"]) {
+        spdlog::debug("Calibrator {}", pipeline = data["calibrator"].as<std::string>());
     }
 
     if (data["cameraIndex"]) {

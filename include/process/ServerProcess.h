@@ -14,5 +14,9 @@ private:
 public:
     ServerProcess();
     ~ServerProcess() override;
-    void run(const std::shared_ptr<cv::VideoCapture>& camera, const std::shared_ptr<IPipeline>& pipeline) override;
+    void run(
+        const std::shared_ptr<cv::VideoCapture>& camera,
+        const std::shared_ptr<IPipeline>& pipeline,
+        const std::shared_ptr<ICalibrator>& calibrator
+    ) override;
 };

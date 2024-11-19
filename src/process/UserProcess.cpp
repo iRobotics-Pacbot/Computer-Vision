@@ -2,9 +2,15 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 
-void UserProcess::run(const std::shared_ptr<cv::VideoCapture>& camera, const std::shared_ptr<IPipeline>& pipeline) {
+void UserProcess::run(
+    const std::shared_ptr<cv::VideoCapture>& camera,
+    const std::shared_ptr<IPipeline>& pipeline,
+    const std::shared_ptr<ICalibrator>& calibrator
+) {
+    // Buffer for the camera output
     cv::Mat image;
 
+    // Window to display the camera output
     cv::namedWindow("Live");
 
     // Runs while the 

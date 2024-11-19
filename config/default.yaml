@@ -1,4 +1,5 @@
 process: user
 pipeline: iterative
+calibrator: blob
 cameraIndex: 0
 exposure: 0
