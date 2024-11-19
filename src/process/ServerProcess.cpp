@@ -79,6 +79,7 @@ void ServerProcess::run(
         // Check if calibrated
         if (not calibrated) {
             region = calibrator->calibrate(frame);
+            calibrated = true;
         }
 
         // Create the subregion
