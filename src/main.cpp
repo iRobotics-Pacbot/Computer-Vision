@@ -24,12 +24,14 @@ int main(int argc, char** argv) {
 
     spdlog::info("Starting Program");
 
-    // Read the configurations for the CV Client
-    spdlog::info("Loading Configurations");
-    Config config;
+    // Set the working directory to the binary parent directory
     std::filesystem::path path = std::filesystem::path(argv[0]).parent_path();
     std::filesystem::current_path(path);
     spdlog::debug("Path {}", path.string());
+
+    // Read the configurations for the CV Client
+    spdlog::info("Loading Configurations");
+    Config config;
 
     // Read the default.yaml and override it with the user.yaml
     config.loadFromFile("default.yaml");
