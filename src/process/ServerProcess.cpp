@@ -1,15 +1,17 @@
 #include "process/ServerProcess.h"
-#include "nlohmann/json_fwd.hpp"
-#include <asio.hpp>
+#include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXNetSystem.h>
+#include <ixwebsocket/IXWebSocketInitResult.h>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
-#include <format>
 #include <opencv2/core.hpp>
+#include <format>
 
 ServerProcess::ServerProcess() {
+    ix::initNetSystem();
     spdlog::debug("Reading Server config.json");
     std::ifstream fileStream(std::filesystem::current_path().parent_path()/"config.json");
     if (not fileStream.is_open()) {
@@ -18,21 +20,23 @@ ServerProcess::ServerProcess() {
     nlohmann::json data = nlohmann::json::parse(fileStream);
     fileStream.close();
 
-    std::string host = data["ServerIP"].get<std::string>();
-    std::string port = std::to_string(data["WebSocketPort"].get<int>());
-    
-    spdlog::info("Connecting to ws://{}:{}", host, port);
+    std::string address = std::format("ws://{}:{}/", data["ServerIP"].get<std::string>(), data["WebSocketPort"].get<int>());
 
-    context = std::make_unique<asio::io_context>();
-    asio::ip::tcp::resolver resolver(*context);
-    socket = std::make_unique<asio::ip::tcp::socket>(*context);
-    socket->connect(resolver.resolve(host, port)->endpoint());
+    spdlog::info("Connecting to {}", address);
 
-    webThread = std::make_unique<std::thread>([&]() {
-        while (socket->is_open()) {
-            context->run();
-        }
-    });
+    socket = std::make_unique<ix::WebSocket>();
+    socket->setUrl(address);
+    socket->setPingInterval(45);
+
+    ix::WebSocketInitResult result = socket->connect(10);
+    if (not result.success) {
+        spdlog::error("Failed to connect to server");
+        spdlog::trace(result.errorStr);
+    }
+}
+
+ServerProcess::~ServerProcess() {
+    ix::uninitNetSystem();
 }
 
 void ServerProcess::run(const std::shared_ptr<cv::VideoCapture>& camera, const std::shared_ptr<IPipeline>& pipeline) {
@@ -40,15 +44,13 @@ void ServerProcess::run(const std::shared_ptr<cv::VideoCapture>& camera, const s
     char data[sizeof(char) + 2 * sizeof(int)];
     data[0] = 'x';
 
-    while (socket->is_open()) {
-        socket->async_receive(nullptr);
+    while (socket->getReadyState() == ix::ReadyState::Open) {
         camera->read(frame);
         std::pair<int, int> pos = pipeline->process(frame);
         std::memcpy(data + sizeof(char), (char*) &pos.first, sizeof(int));
         std::memcpy(data + sizeof(char) + sizeof(int), (char*) &pos.second, sizeof(int));
-        socket->async_send(data);
+        socket->send(data);
     }
-    webThread->join();
 
     spdlog::info("Client Disconnected");
 }

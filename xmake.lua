@@ -1,4 +1,4 @@
-libs = {"opencv", "asio", "spdlog", "yaml-cpp", "nlohmann_json"}
+libs = {"opencv", "spdlog", "yaml-cpp", "nlohmann_json", "ixwebsocket"}
 set_languages("c++23")
 add_requires(unpack(libs))
 
