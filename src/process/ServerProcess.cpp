@@ -28,6 +28,8 @@ ServerProcess::ServerProcess() {
     socket->setUrl(address);
     socket->setPingInterval(45);
 
+    socket->setOnMessageCallback([](const auto& _){});
+
     ix::WebSocketInitResult result = socket->connect(10);
     if (not result.success) {
         spdlog::error("Failed to connect to server");
@@ -49,8 +51,9 @@ void ServerProcess::run(const std::shared_ptr<cv::VideoCapture>& camera, const s
         std::pair<int, int> pos = pipeline->process(frame);
         std::memcpy(data + sizeof(char), (char*) &pos.first, sizeof(int));
         std::memcpy(data + sizeof(char) + sizeof(int), (char*) &pos.second, sizeof(int));
-        socket->send(data);
+        socket->sendBinary(data);
     }
 
+    socket->stop();
     spdlog::info("Client Disconnected");
 }

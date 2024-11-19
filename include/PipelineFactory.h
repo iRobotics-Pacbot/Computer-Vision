@@ -7,7 +7,6 @@
  * @brief Constructs pipelines
  * 
  */
-#include <memory>
 struct PipelineFactory {
     /**
      * @brief Constructs a pipeline based on the name
