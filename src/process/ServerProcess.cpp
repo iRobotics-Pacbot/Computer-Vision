@@ -10,41 +10,53 @@
 #include <nlohmann/json.hpp>
 #include <opencv2/core.hpp>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 
 ServerProcess::ServerProcess() {
   // Initialize the websocket system
   ix::initNetSystem();
 
   // Read configurations out of the config.json
-  spdlog::debug("Reading Server config.json");
+  spdlog::debug("Reading server config.json");
   std::ifstream fileStream(std::filesystem::current_path().parent_path() /
                            "config.json");
+
+  // Check if file is open
   if (not fileStream.is_open()) {
-    spdlog::error("Failed to Open Server config.json");
+    spdlog::critical("Failed to open server config.json");
+    throw std::runtime_error("Failed to open server config.json");
   }
-  nlohmann::json data = nlohmann::json::parse(fileStream);
-  fileStream.close();
 
-  // Create the address
-  std::string address =
-      std::format("ws://{}:{}/", data["ServerIP"].get<std::string>(),
-                  data["WebSocketPort"].get<int>());
+  // Parse the file
+  try {
+    nlohmann::json data = nlohmann::json::parse(fileStream);
+    fileStream.close();
 
-  spdlog::info("Connecting to {}", address);
+    // Create the address
+    std::string address =
+        std::format("ws://{}:{}/", data["ServerIP"].get<std::string>(),
+                    data["WebSocketPort"].get<int>());
 
-  // Create the websocket and configure parameters
-  socket = std::make_unique<ix::WebSocket>();
-  socket->setUrl(address);
-  socket->setPingInterval(45);
+    spdlog::info("Connecting to {}", address);
 
-  // A black callback to ignore messages from the server
-  socket->setOnMessageCallback([](const auto &_) {});
+    // Create the websocket and configure parameters
+    socket = std::make_unique<ix::WebSocket>();
+    socket->setUrl(address);
+    socket->setPingInterval(45);
 
-  // Attempt to connect to the server
-  ix::WebSocketInitResult result = socket->connect(10);
-  if (not result.success) {
-    spdlog::error("Failed to connect to server");
-    spdlog::trace(result.errorStr);
+    // A black callback to ignore messages from the server
+    socket->setOnMessageCallback([](const auto &_) {});
+
+    // Attempt to connect to the server
+    ix::WebSocketInitResult result = socket->connect(10);
+    if (not result.success) {
+      spdlog::critical("Failed to connect to server");
+      spdlog::trace(result.errorStr);
+      throw std::runtime_error("Failed to connect to server");
+    }
+  } catch (nlohmann::json::parse_error &e) {
+    spdlog::critical("Failed to parse server config.json file");
+    throw e;
   }
 }
 
