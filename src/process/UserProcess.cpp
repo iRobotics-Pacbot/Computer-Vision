@@ -2,6 +2,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include <filesystem>
+#include <spdlog/spdlog.h>
 
 void UserProcess::run(const std::shared_ptr<cv::VideoCapture> &camera,
                       const std::shared_ptr<IPipeline> &pipeline,

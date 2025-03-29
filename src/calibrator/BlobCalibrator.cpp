@@ -49,7 +49,7 @@ void BlobCalibrator::convert(cv::Mat &mat) const {
   // Apply gamma correction if needed
   // You can decide to apply gamma correction here based on some condition,
   // like:
-  mat = gammaTransform(mat, 2.2); // Example gamma value
+  mat = gammaTransform(mat, 3); // Example gamma value
 
   // Undistort the image using the stored calibration matrices
   cv::Mat undistorted;
