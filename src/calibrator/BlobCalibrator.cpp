@@ -1,47 +1,89 @@
 #include "calibrator/BlobCalibrator.h"
-#include "opencv2/core/types.hpp"
-#include "opencv2/imgproc.hpp"
-#include <opencv2/features2d.hpp>
+#include "calibrator/CalibrationParameters.h"
+#include <cmath>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <spdlog/spdlog.h>
 
-void BlobCalibrator::calibrate(cv::Mat& input)  {
-    // TODO: Create configuration files
-    // Create the blob parameters to filter out circular shapes
-    cv::SimpleBlobDetector::Params params;
-    params.filterByCircularity = true;
-    params.maxCircularity = 0.75;
+BlobCalibrator::BlobCalibrator() {
+  // Use predefined camera matrix and distortion coefficients from the
+  // CameraCalibration namespace
+  cameraMatrix = CameraCalibration::CAMERA_MATRIX;
+  distCoeffs = CameraCalibration::DIST_COEFFS;
 
-    // Create the blob detector
-    std::shared_ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
-
-    // Get the keypoints
-    std::vector<cv::KeyPoint> keyPoints;
-    detector->detect(input, keyPoints);
-
-    // Convert to the point array
-    cv::Point2f markerPoints[4];
-    for (int i = 0; i < 4; i++) {
-        markerPoints[i] = keyPoints[i].pt;
-    }
-
-    // Sort by how far away from the top left
-    std::sort(
-        std::begin(markerPoints),
-        std::end(markerPoints),
-        [&](const cv::Point2d& a, const cv::Point2d& b) {
-            return (a.x + a.y * input.cols) < (b.x + b.y * input.cols);
-        }
-    );
-
-    // TODO: Check the coordinate order
-    cv::Point2f realPositions[]{
-        {0, 0},
-        {0, (float) input.cols},
-        {(float) input.rows, 0},
-        {(float) input.rows, (float) input.cols}
-    };
-    transformation = cv::getPerspectiveTransform(markerPoints, realPositions);
+  // Set the new camera matrix for undistortion
+  cv::Size frameSize(1280, 800);
+  newCameraMatrix = cv::getOptimalNewCameraMatrix(
+      cameraMatrix, distCoeffs, frameSize, 1, frameSize, &roi);
 }
 
-void BlobCalibrator::convert(cv::Mat& input) const {
+cv::Mat BlobCalibrator::gammaTransform(const cv::Mat &img, double gamma) {
+  cv::Mat lookupTable(1, 256, CV_8U);
+  uchar *p = lookupTable.ptr();
+  for (int i = 0; i < 256; ++i) {
+    p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, gamma) * 255.0);
+  }
 
+  cv::Mat result;
+  cv::LUT(img, lookupTable, result);
+  return result;
 }
+
+double BlobCalibrator::calcCircularity(double area, double perimeter) {
+  // Calculate circularity based on area and perimeter
+  return (perimeter != 0) ? (4 * CV_PI * area / (perimeter * perimeter)) : 0;
+}
+
+double BlobCalibrator::calcAspectRatio(double width, double height) {
+  // Calculate aspect ratio
+  return (height != 0 && width != 0) ? (width / height) : 100;
+}
+
+cv::Point2f
+BlobCalibrator::pointPerspectiveTransform(const cv::Mat &matrix,
+                                          const cv::Point2f &point) {
+  // Perform a perspective transform on a point
+  cv::Mat pt = (cv::Mat_<double>(3, 1) << point.x, point.y, 1.0);
+  cv::Mat transformed = matrix * pt;
+  return cv::Point2f(
+      transformed.at<double>(0, 0) / transformed.at<double>(2, 0),
+      transformed.at<double>(1, 0) / transformed.at<double>(2, 0));
+}
+
+void BlobCalibrator::convert(cv::Mat &mat) const {
+  if (mat.empty()) {
+    spdlog::error("Conversion input image is empty");
+  }
+
+  // Apply gamma correction if needed
+  // You can decide to apply gamma correction here based on some condition,
+  // like:
+  mat = gammaTransform(mat, 2.2); // Example gamma value
+
+  // Undistort the image using the stored calibration matrices
+  cv::Mat undistorted;
+  cv::undistort(mat, undistorted, cameraMatrix, distCoeffs, newCameraMatrix);
+  undistorted = undistorted(roi);
+
+  // Define source points from the calibration
+  std::vector<cv::Point2f> srcPoints = {
+      pointPerspectiveTransform(newCameraMatrix, cv::Point2f(0, 0)),
+      pointPerspectiveTransform(newCameraMatrix,
+                                cv::Point2f(undistorted.cols, 0)),
+      pointPerspectiveTransform(
+          newCameraMatrix, cv::Point2f(undistorted.cols, undistorted.rows)),
+      pointPerspectiveTransform(newCameraMatrix,
+                                cv::Point2f(0, undistorted.rows))};
+
+  // Define destination points as a rectangle
+  std::vector<cv::Point2f> dstPoints = {
+      cv::Point2f(0, 0), cv::Point2f(undistorted.cols, 0),
+      cv::Point2f(undistorted.cols, undistorted.rows),
+      cv::Point2f(0, undistorted.rows)};
+
+  // Compute the perspective transformation matrix
+  cv::Mat perspectiveMatrix = cv::getPerspectiveTransform(srcPoints, dstPoints);
+  cv::warpPerspective(undistorted, mat, perspectiveMatrix, undistorted.size());
+}
+
