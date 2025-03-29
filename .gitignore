@@ -1,6 +1,5 @@
 .cache
 .vscode
 .xmake
-config.json
 compile_commands.json
 build
