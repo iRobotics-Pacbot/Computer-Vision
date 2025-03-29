@@ -1,2 +1,3 @@
-process: server
-
+cameraIndex: 2
+exposure: -11
+process: user

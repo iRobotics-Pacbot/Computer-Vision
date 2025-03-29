@@ -12,8 +12,6 @@ private:
   cv::Rect roi;
 
   static cv::Mat gammaTransform(const cv::Mat &img, double gamma);
-  static double calcCircularity(double area, double perimeter);
-  static double calcAspectRatio(double width, double height);
   static cv::Point2f pointPerspectiveTransform(const cv::Mat &matrix,
                                                const cv::Point2f &point);
 

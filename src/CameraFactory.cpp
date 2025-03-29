@@ -3,12 +3,15 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 
-std::shared_ptr<cv::VideoCapture> CameraFactory::create(int index, int exposure) {
-    std::shared_ptr<cv::VideoCapture> capture = std::make_shared<cv::VideoCapture>();
-    capture->set(cv::CAP_PROP_EXPOSURE, exposure);
-    capture->open(index);
-    if (not capture->isOpened()) {
-        spdlog::error("Failed to Open Camera {}", index);
-    }
-    return capture;
+std::shared_ptr<cv::VideoCapture> CameraFactory::create(int index,
+                                                        int exposure) {
+  std::shared_ptr<cv::VideoCapture> capture =
+      std::make_shared<cv::VideoCapture>();
+  capture->set(cv::CAP_PROP_AUTO_EXPOSURE, 0);
+  capture->set(cv::CAP_PROP_EXPOSURE, exposure);
+  capture->open(index);
+  if (not capture->isOpened()) {
+    spdlog::error("Failed to Open Camera {}", index);
+  }
+  return capture;
 }

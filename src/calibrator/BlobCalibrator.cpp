@@ -30,16 +30,6 @@ cv::Mat BlobCalibrator::gammaTransform(const cv::Mat &img, double gamma) {
   return result;
 }
 
-double BlobCalibrator::calcCircularity(double area, double perimeter) {
-  // Calculate circularity based on area and perimeter
-  return (perimeter != 0) ? (4 * CV_PI * area / (perimeter * perimeter)) : 0;
-}
-
-double BlobCalibrator::calcAspectRatio(double width, double height) {
-  // Calculate aspect ratio
-  return (height != 0 && width != 0) ? (width / height) : 100;
-}
-
 cv::Point2f
 BlobCalibrator::pointPerspectiveTransform(const cv::Mat &matrix,
                                           const cv::Point2f &point) {
@@ -86,4 +76,3 @@ void BlobCalibrator::convert(cv::Mat &mat) const {
   cv::Mat perspectiveMatrix = cv::getPerspectiveTransform(srcPoints, dstPoints);
   cv::warpPerspective(undistorted, mat, perspectiveMatrix, undistorted.size());
 }
-
